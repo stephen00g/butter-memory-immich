@@ -2,6 +2,37 @@
 
 Fullscreen web UI that shows random photos from your [Immich](https://immich.app/) library. A small Node server proxies the Immich API so the **API key stays on the server** (never shipped to the browser).
 
+## Argo is synced but the pod is `ImagePullBackOff` — what to do
+
+**Two different systems:**
+
+| What | What checks it |
+|------|----------------|
+| **Git repository in Argo** | Argo CD clones your repo and applies YAML. If Argo shows **Synced**, this part is fine. |
+| **Container image on GHCR** | Each node runs `docker pull ghcr.io/...` **without** your Git credentials. That uses the **container registry** only. |
+
+A **private GitHub repo** usually produces a **private GHCR package**. Anonymous pulls then get **403**, so the pod stays in **ImagePullBackOff** even though Argo is green.
+
+**Fix (pick one):**
+
+### A — Make the GHCR package public (simplest for a homelab)
+
+Your **code repo** can stay private; only the **package** visibility changes.
+
+1. Open **[Your packages on GitHub](https://github.com/stephen00g?tab=packages)** (or **Profile → Packages**).
+2. Open the package **`immich-screensaver`** (published by this repo’s Actions).
+3. **Package settings** (right sidebar) → **Change package visibility** → **Public** → confirm.
+4. Restart the workload so Kubernetes retries the pull:
+   ```bash
+   kubectl rollout restart deployment/immich-screensaver -n immich-screensaver
+   ```
+
+### B — Keep the package private
+
+Create a GitHub [Personal Access Token](https://github.com/settings/tokens) with **`read:packages`**, then create a pull secret and attach it to the pod. See [Container image (GHCR)](#container-image-ghcr) → **Private GHCR + `imagePullSecrets`** below.
+
+---
+
 ## Which API permissions should the key have?
 
 For listing random assets and serving thumbnails through the official endpoints, use:
