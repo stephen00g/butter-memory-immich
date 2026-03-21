@@ -107,7 +107,14 @@ const server = http.createServer((req, res) => {
   if (req.method === "GET" && u.pathname === "/api/screensaver/random") {
     if (!IMMICH_URL || !API_KEY) {
       res.writeHead(503, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Immich is not configured" }));
+      res.end(
+        JSON.stringify({
+          error: "Immich is not configured",
+          hint: !IMMICH_URL
+            ? "Set IMMICH_SERVER_URL in ConfigMap immich-screensaver-config"
+            : "Set IMMICH_API_KEY in Secret immich-screensaver-secrets",
+        })
+      );
       return;
     }
     const count = u.searchParams.get("count") || "1";

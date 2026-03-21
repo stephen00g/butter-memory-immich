@@ -2,6 +2,19 @@
 
 Fullscreen web UI that shows random photos from your [Immich](https://immich.app/) library. A small Node server proxies the Immich API so the **API key stays on the server** (never shipped to the browser).
 
+### `503` on `http://<screensaver-ip>/api/screensaver/...`
+
+That means the pod is running but **Immich env is incomplete**. Set both:
+
+| What | Where |
+|------|--------|
+| **Immich server URL** | **ConfigMap** `immich-screensaver-config` → `IMMICH_SERVER_URL` (e.g. `http://192.168.68.151:2283` — use your Immich **HTTP(S) port**, usually **2283**) |
+| **Immich API key** | **Secret** `immich-screensaver-secrets` → `IMMICH_API_KEY` |
+
+After changing them, restart: `kubectl rollout restart deployment/immich-screensaver -n immich-screensaver`.
+
+The Git manifest [`argo/manifests/01-configmap.yaml`](argo/manifests/01-configmap.yaml) defaults `IMMICH_SERVER_URL` to your LAN Immich host; you must still **create the Secret** with a real API key (Argo does not invent it).
+
 ## Argo is synced but the pod is `ImagePullBackOff` — what to do
 
 **Two different systems:**
@@ -94,7 +107,9 @@ kubectl create secret generic immich-screensaver-secrets \
   --from-literal=IMMICH_API_KEY='YOUR_KEY_HERE'
 ```
 
-### Set Immich URL and timing
+### Set or change Immich URL and timing
+
+If you did not use the Git default, or Immich listens on another port:
 
 ```bash
 kubectl patch configmap immich-screensaver-config -n immich-screensaver --type merge -p \

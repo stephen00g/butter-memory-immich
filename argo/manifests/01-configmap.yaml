@@ -4,7 +4,7 @@ metadata:
   name: immich-screensaver-config
   namespace: immich-screensaver
 data:
-  # Set to your Immich base URL (no trailing slash). Example: http://192.168.68.151:2283
-  IMMICH_SERVER_URL: ""
+  # Immich base URL (no trailing slash). Default port is 2283; change if yours differs.
+  IMMICH_SERVER_URL: "http://192.168.68.151:2283"
   SLIDE_INTERVAL_MS: "30000"
   IMMICH_THUMB_SIZE: "preview"
