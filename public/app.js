@@ -1,3 +1,5 @@
+import { acquireStayAwake, initStayAwake, releaseStayAwake } from "./keep-awake.js?v=1.1.6";
+
 const STORAGE_KEY = "immich-screensaver-settings";
 
 const MODES = [
@@ -473,6 +475,7 @@ function enterMobileImmersive() {
 }
 
 function leaveFullscreenMode() {
+  releaseStayAwake();
   exitMobileImmersive();
   if (fullscreenElement()) {
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
@@ -484,7 +487,11 @@ function leaveFullscreenMode() {
 function updateFullscreenChrome() {
   const fs = !!fullscreenElement();
   const immersive = document.body.classList.contains("mobile-immersive");
-  document.body.classList.toggle("is-fullscreen", fs || immersive);
+  const willBeFullscreen = fs || immersive;
+  if (document.body.classList.contains("is-fullscreen") && !willBeFullscreen) {
+    releaseStayAwake();
+  }
+  document.body.classList.toggle("is-fullscreen", willBeFullscreen);
   if (fs || immersive) closeSettings();
 }
 
@@ -503,6 +510,7 @@ function requestFs() {
     updateFullscreenChrome();
     return;
   }
+  acquireStayAwake();
   const req = el.requestFullscreen || el.webkitRequestFullscreen;
   if (req) {
     Promise.resolve(req.call(el)).catch(() => {
@@ -588,6 +596,8 @@ appliedStageMode = null;
 applyStageMode();
 populateSettingsForm();
 updateFullscreenChrome();
+
+initStayAwake();
 
 await tick().catch((e) => setStatus(e?.message || String(e)));
 scheduleTick();
