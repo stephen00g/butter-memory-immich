@@ -1,0 +1,31 @@
+# Argo CD Application for this repo. Point repoURL at wherever you host butter-memory-immich.
+# Create the API key secret in-cluster before sync (see README).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich-screensaver
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:stephen00g/butter-memory-immich.git
+    targetRevision: main
+    path: argo/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: immich-screensaver
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

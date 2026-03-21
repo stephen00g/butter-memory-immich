@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-screensaver
+  namespace: immich-screensaver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-screensaver
+  template:
+    metadata:
+      labels:
+        app: immich-screensaver
+    spec:
+      containers:
+        - name: immich-screensaver
+          image: immich-screensaver:1.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: immich-screensaver-config
+            - secretRef:
+                name: immich-screensaver-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: "500m"
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL

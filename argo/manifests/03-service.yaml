@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-screensaver
+  namespace: immich-screensaver
+  annotations:
+    # Pick a free IP from your MetalLB pool (see README).
+    metallb.universe.tf/loadBalancerIPs: "192.168.68.32"
+spec:
+  type: LoadBalancer
+  selector:
+    app: immich-screensaver
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

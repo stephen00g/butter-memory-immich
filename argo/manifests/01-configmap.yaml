@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: immich-screensaver-config
+  namespace: immich-screensaver
+data:
+  # Set to your Immich base URL (no trailing slash). Example: http://192.168.68.151:2283
+  IMMICH_SERVER_URL: ""
+  SLIDE_INTERVAL_MS: "30000"
+  IMMICH_THUMB_SIZE: "preview"

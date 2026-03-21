@@ -1,0 +1,1 @@
+See README.md — Immich screensaver app, Argo manifests under argo/, API key via Secret, URL/timing via ConfigMap, MetalLB on the Service.
