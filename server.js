@@ -76,7 +76,11 @@ function serveStatic(req, res, filePath) {
       return;
     }
     const ext = path.extname(full);
-    res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
+    const headers = { "Content-Type": MIME[ext] || "application/octet-stream" };
+    if ([".html", ".js", ".css", ".webmanifest"].includes(ext)) {
+      headers["Cache-Control"] = "no-store";
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }

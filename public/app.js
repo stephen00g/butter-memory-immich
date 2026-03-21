@@ -414,12 +414,28 @@ settingShowInfo.addEventListener("change", () => {
   saveSettings();
 });
 
+function isTypingInField(target) {
+  const tag = target?.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (target?.isContentEditable) return true;
+  return false;
+}
+
 document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && !settingsDialog.hidden) {
     closeSettings();
     return;
   }
-  if (ev.key === "f" || ev.key === "F") requestFs();
+  if (ev.key === "f" || ev.key === "F") {
+    if (!isTypingInField(ev.target)) requestFs();
+    return;
+  }
+  if (ev.key === "s" || ev.key === "S") {
+    if (isTypingInField(ev.target)) return;
+    if (!settingsDialog.hidden) return;
+    ev.preventDefault();
+    openSettings();
+  }
 });
 
 await loadServerDefaults();

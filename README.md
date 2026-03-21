@@ -17,7 +17,9 @@ The Git manifest [`argo/manifests/01-configmap.yaml`](argo/manifests/01-configma
 
 ### Settings & on-screen styles
 
-Move the mouse to the **bottom edge** → **Settings**. You can pick a screensaver style, **seconds per photo** (5–120), and whether to show **photo details** (place, people, date, tags when Immich provides them). Preferences are saved in **this browser’s localStorage** only (not on the server or in Git).
+Move the mouse to the **bottom edge** — a bar shows **Settings** and **Fullscreen**. Or press **`S`** to open Settings, **`F`** for fullscreen, **`Esc`** to close Settings. You can pick a screensaver style, **seconds per photo** (5–120), and whether to show **photo details** (place, people, date, tags when Immich provides them). Preferences are saved in **this browser’s localStorage** only (not on the server or in Git).
+
+After upgrading, **hard-refresh** the page (or wait for a new container image) so the browser loads the latest HTML/CSS/JS. The server sends `Cache-Control: no-store` for those assets to reduce stale UI.
 
 **Styles** (similar ideas to tvOS): **Classic**, **Ken Burns**, **Origami**, **Reflections**, **Sliding panels**, **Scrapbook**, **Holiday mobile**, **Vintage prints**.
 

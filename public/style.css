@@ -379,7 +379,7 @@ body {
   margin-bottom: 0.15em;
 }
 
-/* HUD */
+/* HUD — bar always visible; only the strip captures hover (buttons stay clickable) */
 .hud {
   position: fixed;
   left: 0;
@@ -391,17 +391,21 @@ body {
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.12), transparent);
+  transition: background 0.2s ease;
   pointer-events: none;
   z-index: 50;
 }
 
 .hud:hover,
 .hud:focus-within {
-  opacity: 1;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.2), transparent);
+}
+
+.hud .hud__btn,
+.hud .hud__status {
   pointer-events: auto;
+  flex-shrink: 0;
 }
 
 .hud__btn {
@@ -531,6 +535,5 @@ body {
 }
 
 body.settings-open .hud {
-  opacity: 1;
   pointer-events: auto;
 }
