@@ -1,4 +1,4 @@
-import { acquireStayAwake, initStayAwake, releaseStayAwake } from "./keep-awake.js?v=1.1.7";
+import { acquireStayAwake, initStayAwake, releaseStayAwake } from "./keep-awake.js?v=1.1.8";
 
 const STORAGE_KEY = "immich-screensaver-settings";
 

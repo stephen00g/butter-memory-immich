@@ -8,10 +8,10 @@
  * Sources: NoSleep.js–style media (keep-awake-media.js), Screen Wake Lock API.
  */
 
-import { webm } from "./keep-awake-media.js?v=1.1.7";
+import { webm } from "./keep-awake-media.js?v=1.1.8";
 
 /** Real H.264 file (see repo `public/keep-awake.mp4`) — iOS often fails on data-URI / tiny broken MP4s. */
-const KEEP_AWAKE_MP4 = "/keep-awake.mp4?v=1.1.7";
+const KEEP_AWAKE_MP4 = "/keep-awake.mp4?v=1.1.8";
 
 let wakeLock = null;
 let noSleepVideo = null;

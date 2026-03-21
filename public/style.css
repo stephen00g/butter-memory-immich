@@ -116,24 +116,26 @@ body {
   transition: opacity 1.2s ease-in-out;
 }
 
-/* Ken Burns */
-.mode-ken-burns .slide-layer:not(.slide-layer--hidden) .slide-main .photo {
+/* Ken Burns — apply to both layers; visibility is only via layer opacity. If animations
+   were gated with :not(.slide-layer--hidden), the outgoing slide lost its transform the
+   instant it was hidden → visible snap/jerk before the crossfade finished. */
+.mode-ken-burns .slide-layer .slide-main .photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: kenburns var(--slide-duration) ease-out forwards;
+  animation: kbA var(--slide-duration) ease-out forwards;
 }
 
-.mode-ken-burns .slide-layer:not(.slide-layer--hidden).kb-a .slide-main .photo {
+.mode-ken-burns .slide-layer.kb-a .slide-main .photo {
   animation-name: kbA;
 }
-.mode-ken-burns .slide-layer:not(.slide-layer--hidden).kb-b .slide-main .photo {
+.mode-ken-burns .slide-layer.kb-b .slide-main .photo {
   animation-name: kbB;
 }
-.mode-ken-burns .slide-layer:not(.slide-layer--hidden).kb-c .slide-main .photo {
+.mode-ken-burns .slide-layer.kb-c .slide-main .photo {
   animation-name: kbC;
 }
-.mode-ken-burns .slide-layer:not(.slide-layer--hidden).kb-d .slide-main .photo {
+.mode-ken-burns .slide-layer.kb-d .slide-main .photo {
   animation-name: kbD;
 }
 
@@ -194,8 +196,8 @@ body {
   }
 }
 
-/* Scrapbook */
-.mode-scrapbook .slide-layer:not(.slide-layer--hidden) .slide-main {
+/* Scrapbook — same “both layers” idea as Ken Burns (avoid transform snap on hide). */
+.mode-scrapbook .slide-layer .slide-main {
   transform: rotate(var(--scrap-rot));
   padding: 10px;
   background: linear-gradient(145deg, #faf6ee 0%, #ebe4d6 100%);
@@ -205,8 +207,8 @@ body {
   border-radius: 2px;
 }
 
-.mode-scrapbook .slide-layer:not(.slide-layer--hidden) .slide-main::before,
-.mode-scrapbook .slide-layer:not(.slide-layer--hidden) .slide-main::after {
+.mode-scrapbook .slide-layer .slide-main::before,
+.mode-scrapbook .slide-layer .slide-main::after {
   content: "";
   position: absolute;
   width: 28px;
@@ -217,20 +219,20 @@ body {
   z-index: 2;
 }
 
-.mode-scrapbook .slide-layer:not(.slide-layer--hidden) .slide-main::before {
+.mode-scrapbook .slide-layer .slide-main::before {
   top: -6px;
   left: 18%;
   transform: rotate(-8deg);
 }
 
-.mode-scrapbook .slide-layer:not(.slide-layer--hidden) .slide-main::after {
+.mode-scrapbook .slide-layer .slide-main::after {
   top: -6px;
   right: 22%;
   transform: rotate(6deg);
 }
 
 /* Holiday mobile */
-.mode-holiday-mobile .slide-layer:not(.slide-layer--hidden)::before {
+.mode-holiday-mobile .slide-layer::before {
   content: "";
   position: absolute;
   top: 6%;
@@ -244,7 +246,7 @@ body {
   animation: mobileSway 5s ease-in-out infinite alternate;
 }
 
-.mode-holiday-mobile .slide-layer:not(.slide-layer--hidden) .slide-main {
+.mode-holiday-mobile .slide-layer .slide-main {
   transform-origin: top center;
   animation: mobileSwing var(--slide-duration) ease-in-out infinite alternate;
 }
@@ -268,7 +270,7 @@ body {
 }
 
 /* Vintage prints */
-.mode-vintage .slide-layer:not(.slide-layer--hidden) .slide-main {
+.mode-vintage .slide-layer .slide-main {
   padding: 14px 14px 48px 14px;
   background: #e8e0d4;
   box-shadow:
@@ -276,12 +278,12 @@ body {
     0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.mode-vintage .slide-layer:not(.slide-layer--hidden) .slide-main .photo {
+.mode-vintage .slide-layer .slide-main .photo {
   filter: sepia(0.22) contrast(1.04) saturate(0.92);
   border: 1px solid rgba(40, 30, 20, 0.12);
 }
 
-.mode-vintage .slide-layer:not(.slide-layer--hidden) .slide-main::after {
+.mode-vintage .slide-layer .slide-main::after {
   content: "";
   position: absolute;
   bottom: 10px;
