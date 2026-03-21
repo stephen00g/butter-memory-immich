@@ -7,8 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Immich Screensaver</title>
-    <link rel="stylesheet" href="/style.css?v=1.1.4" />
-    <link rel="manifest" href="/manifest.webmanifest?v=1.1.4" />
+    <link rel="stylesheet" href="/style.css?v=1.1.5" />
+    <link rel="manifest" href="/manifest.webmanifest?v=1.1.5" />
   </head>
   <body>
     <div id="stage" class="stage mode-classic" aria-hidden="true">
@@ -43,10 +43,6 @@
       <span id="status" class="hud__status"></span>
     </div>
 
-    <button type="button" id="btn-exit-immersive" class="mobile-exit-fs" aria-label="Exit fill screen">
-      Done
-    </button>
-
     <div id="settings-backdrop" class="settings-backdrop" hidden></div>
     <div
       id="settings-dialog"
@@ -79,11 +75,14 @@
         </label>
 
         <div class="settings-dialog__actions">
+          <button type="button" id="btn-leave-fullscreen" class="hud__btn" hidden>
+            Leave fullscreen
+          </button>
           <button type="button" id="btn-settings-close" class="hud__btn">Done</button>
         </div>
       </div>
     </div>
 
-    <script src="/app.js?v=1.1.4" type="module"></script>
+    <script src="/app.js?v=1.1.5" type="module"></script>
   </body>
 </html>

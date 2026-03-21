@@ -24,7 +24,7 @@ const MODES = [
   {
     id: "sliding-panels",
     label: "Photo collage",
-    desc: "A bento-style grid of random-sized tiles; the layout reshuffles on each interval.",
+    desc: "Up to five random-sized tiles in a grid; the layout reshuffles on each interval.",
   },
   {
     id: "scrapbook",
@@ -52,7 +52,7 @@ const collageMode = document.getElementById("collage-mode");
 const bentoGrid = document.getElementById("bento-grid");
 const stage = document.getElementById("stage");
 const btnFs = document.getElementById("btn-fullscreen");
-const btnExitImmersive = document.getElementById("btn-exit-immersive");
+const btnLeaveFullscreen = document.getElementById("btn-leave-fullscreen");
 const btnSettings = document.getElementById("btn-settings");
 const statusEl = document.getElementById("status");
 const photoInfoEl = document.getElementById("photo-info");
@@ -363,7 +363,7 @@ const BENTO_COLS = 12;
 const BENTO_ROWS = 8;
 
 async function tickCollage() {
-  const targetPieces = 8 + Math.floor(Math.random() * 7);
+  const targetPieces = 2 + Math.floor(Math.random() * 4);
   const blocks = randomPartition(BENTO_COLS, BENTO_ROWS, targetPieces);
   const n = blocks.length;
 
@@ -440,6 +440,9 @@ async function openSettings() {
   } catch {
     /* keep previous label */
   }
+  if (btnLeaveFullscreen) {
+    btnLeaveFullscreen.hidden = !document.body.classList.contains("is-fullscreen");
+  }
   settingsBackdrop.hidden = false;
   settingsDialog.hidden = false;
   document.body.classList.add("settings-open");
@@ -469,6 +472,15 @@ function enterMobileImmersive() {
   document.body.classList.add("mobile-immersive");
 }
 
+function leaveFullscreenMode() {
+  exitMobileImmersive();
+  if (fullscreenElement()) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    exit?.call(document)?.catch(() => {});
+  }
+  updateFullscreenChrome();
+}
+
 function updateFullscreenChrome() {
   const fs = !!fullscreenElement();
   const immersive = document.body.classList.contains("mobile-immersive");
@@ -481,14 +493,14 @@ document.addEventListener("webkitfullscreenchange", updateFullscreenChrome);
 
 function requestFs() {
   if (document.body.classList.contains("mobile-immersive")) {
-    exitMobileImmersive();
-    updateFullscreenChrome();
+    leaveFullscreenMode();
     return;
   }
   const el = document.documentElement;
   if (fullscreenElement()) {
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
     exit?.call(document)?.catch(() => {});
+    updateFullscreenChrome();
     return;
   }
   const req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -504,9 +516,8 @@ function requestFs() {
 }
 
 btnFs.addEventListener("click", requestFs);
-btnExitImmersive.addEventListener("click", () => {
-  exitMobileImmersive();
-  updateFullscreenChrome();
+btnLeaveFullscreen?.addEventListener("click", () => {
+  leaveFullscreenMode();
 });
 btnSettings.addEventListener("click", openSettings);
 btnSettingsClose.addEventListener("click", closeSettings);
@@ -529,6 +540,19 @@ settingShowInfo.addEventListener("change", () => {
   saveSettings();
 });
 
+document.addEventListener(
+  "click",
+  (ev) => {
+    if (!document.body.classList.contains("is-fullscreen")) return;
+    if (!settingsDialog.hidden) return;
+    if (ev.target.closest("#settings-dialog") || ev.target.closest("#settings-backdrop")) return;
+    if (ev.target.closest("#hud")) return;
+    if (!stage.contains(ev.target)) return;
+    openSettings();
+  },
+  true
+);
+
 function isTypingInField(target) {
   const tag = target?.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
@@ -542,8 +566,7 @@ document.addEventListener("keydown", (ev) => {
     return;
   }
   if (ev.key === "Escape" && settingsDialog.hidden && document.body.classList.contains("mobile-immersive")) {
-    exitMobileImmersive();
-    updateFullscreenChrome();
+    leaveFullscreenMode();
     return;
   }
   if (ev.key === "f" || ev.key === "F") {

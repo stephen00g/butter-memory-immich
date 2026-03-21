@@ -31,6 +31,8 @@ body {
 #stage {
   position: fixed;
   inset: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .stage {
@@ -332,29 +334,6 @@ body {
   opacity: 1;
 }
 
-/* When Safari can’t use Fullscreen API, we use “fill screen” mode */
-.mobile-exit-fs {
-  display: none;
-  position: fixed;
-  z-index: 200;
-  top: max(10px, env(safe-area-inset-top));
-  right: max(10px, env(safe-area-inset-right));
-  padding: 10px 16px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font: inherit;
-  font-size: 0.95rem;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-body.mobile-immersive .mobile-exit-fs {
-  display: block;
-}
-
 /* Reduce rubber-band scroll revealing the page behind Safari’s chrome when “fill screen” is on */
 body.mobile-immersive {
   position: fixed;
@@ -407,7 +386,7 @@ body.mobile-immersive {
   color: rgba(255, 255, 255, 0.52);
 }
 
-/* Hide chrome in real fullscreen or mobile “fill screen” (tap Done to show HUD again) */
+/* Hide chrome in real fullscreen or mobile “fill screen” (tap the picture to open Settings) */
 body.is-fullscreen #hud,
 body.mobile-immersive #hud {
   opacity: 0 !important;
@@ -584,6 +563,8 @@ body.mobile-immersive #hud {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 body.settings-open .hud {
