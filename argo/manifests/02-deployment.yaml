@@ -26,8 +26,15 @@ spec:
           envFrom:
             - configMapRef:
                 name: immich-screensaver-config
-            - secretRef:
-                name: immich-screensaver-secrets
+          # Required secretRef blocks the pod if the secret is missing (Argo sync alone is not enough).
+          # Optional key: pod starts; app returns 503 until you add the real key.
+          env:
+            - name: IMMICH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: immich-screensaver-secrets
+                  key: IMMICH_API_KEY
+                  optional: true
           readinessProbe:
             httpGet:
               path: /health
