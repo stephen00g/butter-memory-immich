@@ -5,7 +5,7 @@
 }
 
 /* Class-based display must not beat the [hidden] attribute (otherwise panels/settings stay visible). */
-.panels-mode[hidden],
+.collage-mode[hidden],
 .stack-mode[hidden],
 .settings-backdrop[hidden],
 .settings-dialog[hidden] {
@@ -291,104 +291,76 @@ body {
   pointer-events: none;
 }
 
-/* Sliding panels — tvOS-style vertical columns, slow independent drift (parallax collage) */
-.panels-mode {
+/* Photo collage (was “sliding panels”): random-sized blocks in a grid, layout reshuffles each interval */
+.collage-mode {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  padding: 0;
   background: #000;
 }
 
-.panel-col {
-  position: relative;
+.bento-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: clamp(6px, 1.2vw, 12px);
+  gap: clamp(6px, 1vw, 10px);
+  background: #000;
+}
+
+.bento-cell {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #060606;
+  border-radius: clamp(6px, 1vw, 12px);
+  background: #0c0c0c;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
-.panel-col-scroll {
-  position: absolute;
-  left: -4%;
-  width: 108%;
-  height: 118%;
-  top: -9%;
-  will-change: transform;
-}
-
-.panel-col-scroll .panel-img {
+.bento-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  opacity: 1;
-  transition: opacity 0.85s ease-out;
-}
-
-.panel-col-scroll .panel-img.panel-img--loading {
   opacity: 0;
+  transition: opacity 0.55s ease-out;
 }
 
-/* Each column: different speed + direction → Apple-like layered motion */
-.panel-col--1 .panel-col-scroll {
-  animation: panelDriftA 52s ease-in-out infinite alternate;
-}
-.panel-col--2 .panel-col-scroll {
-  animation: panelDriftB 61s ease-in-out infinite alternate-reverse;
-}
-.panel-col--3 .panel-col-scroll {
-  animation: panelDriftC 47s ease-in-out infinite alternate;
-}
-.panel-col--4 .panel-col-scroll {
-  animation: panelDriftD 56s ease-in-out infinite alternate-reverse;
-}
-.panel-col--5 .panel-col-scroll {
-  animation: panelDriftE 44s ease-in-out infinite alternate;
+.bento-img.bento-img--loaded {
+  opacity: 1;
 }
 
-/* Mostly vertical drift with slight horizontal — continuous, smooth loops */
-@keyframes panelDriftA {
-  0% {
-    transform: translate(0, 0) scale(1.02);
-  }
-  100% {
-    transform: translate(-2%, -6%) scale(1.05);
-  }
+/* When Safari can’t use Fullscreen API, we use “fill screen” mode */
+.mobile-exit-fs {
+  display: none;
+  position: fixed;
+  z-index: 200;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-@keyframes panelDriftB {
-  0% {
-    transform: translate(0, -4%) scale(1.04);
-  }
-  100% {
-    transform: translate(1.5%, 2%) scale(1.02);
-  }
+
+body.mobile-immersive .mobile-exit-fs {
+  display: block;
 }
-@keyframes panelDriftC {
-  0% {
-    transform: translate(-1%, 1%) scale(1.03);
-  }
-  100% {
-    transform: translate(2%, -5%) scale(1.06);
-  }
-}
-@keyframes panelDriftD {
-  0% {
-    transform: translate(1%, 0) scale(1.05);
-  }
-  100% {
-    transform: translate(-2%, 4%) scale(1.03);
-  }
-}
-@keyframes panelDriftE {
-  0% {
-    transform: translate(0, 2%) scale(1.02);
-  }
-  100% {
-    transform: translate(0, -7%) scale(1.05);
-  }
+
+/* Reduce rubber-band scroll revealing the page behind Safari’s chrome when “fill screen” is on */
+body.mobile-immersive {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* Photo info — subtle text only (no panel/box) */
@@ -435,8 +407,9 @@ body {
   color: rgba(255, 255, 255, 0.52);
 }
 
-/* Hide chrome in real fullscreen (move mouse to bottom edge to show — still hidden while fullscreen) */
-body.is-fullscreen #hud {
+/* Hide chrome in real fullscreen or mobile “fill screen” (tap Done to show HUD again) */
+body.is-fullscreen #hud,
+body.mobile-immersive #hud {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
@@ -487,6 +460,8 @@ body.is-fullscreen #hud {
   color: #fff;
   font: inherit;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hud__btn:hover {

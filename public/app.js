@@ -23,8 +23,8 @@ const MODES = [
   },
   {
     id: "sliding-panels",
-    label: "Sliding panels",
-    desc: "tvOS-style: five tall columns, each photo drifting slowly on its own (parallax collage).",
+    label: "Photo collage",
+    desc: "A bento-style grid of random-sized tiles; the layout reshuffles on each interval.",
   },
   {
     id: "scrapbook",
@@ -48,9 +48,11 @@ const KB_CLASSES = ["kb-a", "kb-b", "kb-c", "kb-d"];
 const layerA = document.getElementById("layer-a");
 const layerB = document.getElementById("layer-b");
 const stackMode = document.getElementById("stack-mode");
-const panelsMode = document.getElementById("panels-mode");
+const collageMode = document.getElementById("collage-mode");
+const bentoGrid = document.getElementById("bento-grid");
 const stage = document.getElementById("stage");
 const btnFs = document.getElementById("btn-fullscreen");
+const btnExitImmersive = document.getElementById("btn-exit-immersive");
 const btnSettings = document.getElementById("btn-settings");
 const statusEl = document.getElementById("status");
 const photoInfoEl = document.getElementById("photo-info");
@@ -291,9 +293,9 @@ function applyStageMode() {
   stage.className = "stage";
   stage.classList.add(`mode-${m}`);
 
-  const isPanels = m === "sliding-panels";
-  stackMode.hidden = isPanels;
-  panelsMode.hidden = !isPanels;
+  const isCollage = m === "sliding-panels";
+  stackMode.hidden = isCollage;
+  collageMode.hidden = !isCollage;
 }
 
 function scheduleTick() {
@@ -329,39 +331,84 @@ async function tickStack() {
   setLayerImageSources(idleLayer, url);
 }
 
-async function tickPanels() {
-  let assets = await fetchRandomAssets(5);
-  while (assets.length < 5 && assets.length > 0) {
+/** Random tiling partition: splits the rectangle until we have `targetPieces` cells (sizes change each tick). */
+function randomPartition(cols, rows, targetPieces) {
+  const rects = [{ c: 0, r: 0, w: cols, h: rows }];
+  while (rects.length < targetPieces) {
+    const idx = rects.findIndex((rect) => rect.w > 1 || rect.h > 1);
+    if (idx === -1) break;
+    const rect = rects[idx];
+    const canH = rect.h >= 2;
+    const canV = rect.w >= 2;
+    let horizontal;
+    if (canH && canV) horizontal = Math.random() < 0.5;
+    else horizontal = canH;
+    let a;
+    let b;
+    if (horizontal) {
+      const split = 1 + Math.floor(Math.random() * (rect.h - 1));
+      a = { c: rect.c, r: rect.r, w: rect.w, h: split };
+      b = { c: rect.c, r: rect.r + split, w: rect.w, h: rect.h - split };
+    } else {
+      const split = 1 + Math.floor(Math.random() * (rect.w - 1));
+      a = { c: rect.c, r: rect.r, w: split, h: rect.h };
+      b = { c: rect.c + split, r: rect.r, w: rect.w - split, h: rect.h };
+    }
+    rects.splice(idx, 1, a, b);
+  }
+  return rects;
+}
+
+const BENTO_COLS = 12;
+const BENTO_ROWS = 8;
+
+async function tickCollage() {
+  const targetPieces = 8 + Math.floor(Math.random() * 7);
+  const blocks = randomPartition(BENTO_COLS, BENTO_ROWS, targetPieces);
+  const n = blocks.length;
+
+  let assets = await fetchRandomAssets(n);
+  while (assets.length < n && assets.length > 0) {
     assets.push(assets[assets.length - 1]);
   }
-  const imgs = panelsMode.querySelectorAll(".panel-img");
-  let loaded = 0;
-  const total = Math.min(assets.length, imgs.length);
-  if (!total) throw new Error("No assets for panels");
+  if (!assets.length) throw new Error("No assets for collage");
 
-  for (let i = 0; i < total; i++) {
-    const a = assets[i];
-    const el = imgs[i];
-    el.classList.add("panel-img--loading");
-    el.onload = () => {
-      el.classList.remove("panel-img--loading");
+  bentoGrid.replaceChildren();
+  bentoGrid.style.gridTemplateColumns = `repeat(${BENTO_COLS}, 1fr)`;
+  bentoGrid.style.gridTemplateRows = `repeat(${BENTO_ROWS}, 1fr)`;
+
+  let loaded = 0;
+  const total = n;
+  const infoAsset = assets[0];
+
+  blocks.forEach((b, i) => {
+    const asset = assets[i] || assets[0];
+    const cell = document.createElement("div");
+    cell.className = "bento-cell";
+    cell.style.gridColumn = `${b.c + 1} / span ${b.w}`;
+    cell.style.gridRow = `${b.r + 1} / span ${b.h}`;
+    const img = document.createElement("img");
+    img.className = "bento-img";
+    img.alt = "";
+    img.decoding = "async";
+    img.onload = () => {
+      img.classList.add("bento-img--loaded");
       loaded += 1;
       if (loaded === total) {
-        renderPhotoInfo(assets[0]);
+        renderPhotoInfo(infoAsset);
         setStatus("");
       }
     };
-    el.onerror = () => {
-      el.classList.remove("panel-img--loading");
-      setStatus("Could not load a panel image.");
-    };
-    el.src = `/api/screensaver/thumbnail/${encodeURIComponent(a.id)}`;
-  }
+    img.onerror = () => setStatus("Could not load a collage image.");
+    img.src = `/api/screensaver/thumbnail/${encodeURIComponent(asset.id)}`;
+    cell.appendChild(img);
+    bentoGrid.appendChild(cell);
+  });
 }
 
 async function tick() {
   applyStageMode();
-  if (settings.mode === "sliding-panels") await tickPanels();
+  if (settings.mode === "sliding-panels") await tickCollage();
   else await tickStack();
 }
 
@@ -410,21 +457,57 @@ function closeSettings() {
   tick().catch((e) => setStatus(e?.message || String(e)));
 }
 
+function fullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement;
+}
+
+function exitMobileImmersive() {
+  document.body.classList.remove("mobile-immersive");
+}
+
+function enterMobileImmersive() {
+  document.body.classList.add("mobile-immersive");
+}
+
 function updateFullscreenChrome() {
-  document.body.classList.toggle("is-fullscreen", !!document.fullscreenElement);
-  if (document.fullscreenElement) closeSettings();
+  const fs = !!fullscreenElement();
+  const immersive = document.body.classList.contains("mobile-immersive");
+  document.body.classList.toggle("is-fullscreen", fs || immersive);
+  if (fs || immersive) closeSettings();
 }
 
 document.addEventListener("fullscreenchange", updateFullscreenChrome);
 document.addEventListener("webkitfullscreenchange", updateFullscreenChrome);
 
 function requestFs() {
+  if (document.body.classList.contains("mobile-immersive")) {
+    exitMobileImmersive();
+    updateFullscreenChrome();
+    return;
+  }
   const el = document.documentElement;
-  if (!document.fullscreenElement) el.requestFullscreen?.().catch(() => {});
-  else document.exitFullscreen?.().catch(() => {});
+  if (fullscreenElement()) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    exit?.call(document)?.catch(() => {});
+    return;
+  }
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) {
+    Promise.resolve(req.call(el)).catch(() => {
+      enterMobileImmersive();
+      updateFullscreenChrome();
+    });
+  } else {
+    enterMobileImmersive();
+    updateFullscreenChrome();
+  }
 }
 
 btnFs.addEventListener("click", requestFs);
+btnExitImmersive.addEventListener("click", () => {
+  exitMobileImmersive();
+  updateFullscreenChrome();
+});
 btnSettings.addEventListener("click", openSettings);
 btnSettingsClose.addEventListener("click", closeSettings);
 settingsBackdrop.addEventListener("click", closeSettings);
@@ -456,6 +539,11 @@ function isTypingInField(target) {
 document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && !settingsDialog.hidden) {
     closeSettings();
+    return;
+  }
+  if (ev.key === "Escape" && settingsDialog.hidden && document.body.classList.contains("mobile-immersive")) {
+    exitMobileImmersive();
+    updateFullscreenChrome();
     return;
   }
   if (ev.key === "f" || ev.key === "F") {

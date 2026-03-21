@@ -17,11 +17,11 @@ The Git manifest [`argo/manifests/01-configmap.yaml`](argo/manifests/01-configma
 
 ### Settings & on-screen styles
 
-Move the mouse to the **bottom edge** — a bar shows **Settings** and **Fullscreen**. Or press **`S`** to open Settings, **`F`** to toggle fullscreen, **`Esc`** to close Settings. In **fullscreen**, the bar is hidden; press **`F`** or **`Esc`** to leave fullscreen. You can pick a screensaver style, **seconds per photo** (5–120), and whether to show **photo details** (place, people, date, tags when Immich provides them). Preferences are saved in **this browser’s localStorage** only (not on the server or in Git).
+Move the mouse to the **bottom edge** — a bar shows **Settings** and **Fullscreen**. Or press **`S`** to open Settings, **`F`** to toggle fullscreen, **`Esc`** to close Settings. In **fullscreen**, the bar is hidden; press **`F`** or **`Esc`** to leave fullscreen. On **iPhone / iPad Safari**, the Fullscreen API usually isn’t available; **Fullscreen** switches to a **fill-screen** mode instead — tap **Done** (top-right) or **Fullscreen** again to show the bar. You can pick a screensaver style, **seconds per photo** (5–120), and whether to show **photo details** (place, people, date, tags when Immich provides them). Preferences are saved in **this browser’s localStorage** only (not on the server or in Git).
 
 After upgrading, **hard-refresh** the page (or wait for a new container image) so the browser loads the latest HTML/CSS/JS. The server sends `Cache-Control: no-store` for those assets to reduce stale UI.
 
-**Styles** (similar ideas to tvOS): **Classic**, **Ken Burns**, **Origami**, **Reflections**, **Sliding panels**, **Scrapbook**, **Holiday mobile**, **Vintage prints**.
+**Styles** (similar ideas to tvOS): **Classic**, **Ken Burns**, **Origami**, **Reflections**, **Photo collage** (bento grid of tiles), **Scrapbook**, **Holiday mobile**, **Vintage prints**.
 
 **Photo details** use metadata from Immich’s random-asset JSON (e.g. EXIF city/state/country, GPS coordinates if no place name, people with names, capture date, tags, caption). If something is missing in Immich, it won’t appear on screen.
 
@@ -151,18 +151,18 @@ The cluster must be able to **reach** `IMMICH_SERVER_URL` from the pod network (
 
 ## Container image (GHCR)
 
-**CI:** Pushes to `main` run [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) and publish `ghcr.io/stephen00g/immich-screensaver:1.1.3` (and `:latest`). Wait for the workflow to finish after you push, then sync Argo (or `kubectl apply -k argo/manifests`). The **Settings** dialog shows **Version x.y.z** from `package.json` in the running image (bump `package.json` + image tag together when you release).
+**CI:** Pushes to `main` run [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) and publish `ghcr.io/stephen00g/immich-screensaver:1.1.4` (and `:latest`). Wait for the workflow to finish after you push, then sync Argo (or `kubectl apply -k argo/manifests`). The **Settings** dialog shows **Version x.y.z** from `package.json` in the running image (bump `package.json` + image tag together when you release).
 
-**Why you didn’t see UI changes after a Git push:** The app’s HTML/JS/CSS are **inside the Docker image**. Kubernetes defaults to **`imagePullPolicy: IfNotPresent`**. If the tag stayed **`1.0.0`**, nodes kept using the **cached old image** and never picked up new static files. This repo uses a **bumped tag** (e.g. **`1.1.3`**) when UI changes and **`imagePullPolicy: Always`** so rollouts pull fresh layers. When you change the UI again, **bump the tag** in `argo/manifests/kustomization.yaml` and `.github/workflows/docker-publish.yml` (same version in both), push `main`, let CI build, then sync.
+**Why you didn’t see UI changes after a Git push:** The app’s HTML/JS/CSS are **inside the Docker image**. Kubernetes defaults to **`imagePullPolicy: IfNotPresent`**. If the tag stayed **`1.0.0`**, nodes kept using the **cached old image** and never picked up new static files. This repo uses a **bumped tag** (e.g. **`1.1.4`**) when UI changes and **`imagePullPolicy: Always`** so rollouts pull fresh layers. When you change the UI again, **bump the tag** in `argo/manifests/kustomization.yaml` and `.github/workflows/docker-publish.yml` (same version in both), push `main`, let CI build, then sync.
 
 **ImagePullBackOff / `401` / `403` on `ghcr.io/token`:** Use the **`ghcr-pull`** docker-registry secret and `imagePullSecrets` on the Deployment (already in `argo/manifests/02-deployment.yaml`). Anonymous GHCR pulls are unreliable for many user-owned packages even when marked public.
 
 Manual build (optional):
 
 ```bash
-docker build -t ghcr.io/YOUR_ORG/immich-screensaver:1.1.3 .
+docker build -t ghcr.io/YOUR_ORG/immich-screensaver:1.1.4 .
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_USER --password-stdin
-docker push ghcr.io/YOUR_ORG/immich-screensaver:1.1.3
+docker push ghcr.io/YOUR_ORG/immich-screensaver:1.1.4
 ```
 
 ## Argo CD
