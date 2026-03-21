@@ -15,6 +15,14 @@ After changing them, restart: `kubectl rollout restart deployment/immich-screens
 
 The Git manifest [`argo/manifests/01-configmap.yaml`](argo/manifests/01-configmap.yaml) defaults `IMMICH_SERVER_URL` to your LAN Immich host; you must still **create the Secret** with a real API key (Argo does not invent it).
 
+### Settings & on-screen styles
+
+Move the mouse to the **bottom edge** → **Settings**. You can pick a screensaver style, **seconds per photo** (5–120), and whether to show **photo details** (place, people, date, tags when Immich provides them). Preferences are saved in **this browser’s localStorage** only (not on the server or in Git).
+
+**Styles** (similar ideas to tvOS): **Classic**, **Ken Burns**, **Origami**, **Reflections**, **Sliding panels**, **Scrapbook**, **Holiday mobile**, **Vintage prints**.
+
+**Photo details** use metadata from Immich’s random-asset JSON (e.g. EXIF city/state/country, GPS coordinates if no place name, people with names, capture date, tags, caption). If something is missing in Immich, it won’t appear on screen.
+
 ## Argo is synced but the pod is `ImagePullBackOff` — what to do
 
 **Two different systems:**

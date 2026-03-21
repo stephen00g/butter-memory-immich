@@ -11,14 +11,76 @@
     <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>
-    <div id="stage" aria-hidden="true">
-      <img id="layer-a" class="photo" alt="" decoding="async" />
-      <img id="layer-b" class="photo photo--hidden" alt="" decoding="async" />
+    <div id="stage" class="stage mode-classic" aria-hidden="true">
+      <div id="stack-mode" class="stack-mode">
+        <div id="layer-a" class="slide-layer">
+          <div class="slide-main">
+            <img class="photo" alt="" decoding="async" />
+          </div>
+          <div class="slide-reflection" aria-hidden="true">
+            <img class="photo photo--reflect" alt="" decoding="async" />
+          </div>
+        </div>
+        <div id="layer-b" class="slide-layer slide-layer--hidden">
+          <div class="slide-main">
+            <img class="photo" alt="" decoding="async" />
+          </div>
+          <div class="slide-reflection" aria-hidden="true">
+            <img class="photo photo--reflect" alt="" decoding="async" />
+          </div>
+        </div>
+      </div>
+      <div id="panels-mode" class="panels-mode" hidden>
+        <div class="panel-strip panel-strip--1"><img class="panel-img" alt="" decoding="async" /></div>
+        <div class="panel-strip panel-strip--2"><img class="panel-img" alt="" decoding="async" /></div>
+        <div class="panel-strip panel-strip--3"><img class="panel-img" alt="" decoding="async" /></div>
+      </div>
     </div>
+
+    <aside id="photo-info" class="photo-info" aria-live="polite" hidden></aside>
+
     <div id="hud" class="hud">
+      <button type="button" id="btn-settings" class="hud__btn" aria-haspopup="dialog">Settings</button>
       <button type="button" id="btn-fullscreen" class="hud__btn">Fullscreen</button>
       <span id="status" class="hud__status"></span>
     </div>
+
+    <div id="settings-backdrop" class="settings-backdrop" hidden></div>
+    <div
+      id="settings-dialog"
+      class="settings-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
+      hidden
+    >
+      <div class="settings-dialog__inner">
+        <h2 id="settings-title" class="settings-dialog__title">Screensaver</h2>
+        <p class="settings-dialog__hint">Preferences are saved in this browser only.</p>
+
+        <label class="settings-field">
+          <span class="settings-field__label">Style</span>
+          <select id="setting-mode" class="settings-field__input"></select>
+        </label>
+        <p class="settings-field__desc" id="mode-desc"></p>
+
+        <label class="settings-field">
+          <span class="settings-field__label">Seconds per photo</span>
+          <input id="setting-interval" type="range" min="5" max="120" step="1" class="settings-field__range" />
+          <span id="setting-interval-value" class="settings-field__value"></span>
+        </label>
+
+        <label class="settings-field settings-field--row">
+          <input id="setting-show-info" type="checkbox" />
+          <span>Show photo details (place, people, date)</span>
+        </label>
+
+        <div class="settings-dialog__actions">
+          <button type="button" id="btn-settings-close" class="hud__btn">Done</button>
+        </div>
+      </div>
+    </div>
+
     <script src="/app.js" type="module"></script>
   </body>
 </html>
