@@ -24,7 +24,7 @@ const MODES = [
   {
     id: "sliding-panels",
     label: "Sliding panels",
-    desc: "Three horizontal strips, each slowly drifting for a dynamic wall of images.",
+    desc: "tvOS-style: five tall columns, each photo drifting slowly on its own (parallax collage).",
   },
   {
     id: "scrapbook",
@@ -67,6 +67,8 @@ let activeLayer = layerA;
 let idleLayer = layerB;
 let slideIntervalMs = 30000;
 let tickTimer = null;
+/** Avoid resetting stage classes every tick — that restarted CSS animations and caused visible “jumps”. */
+let appliedStageMode = null;
 
 const settings = {
   mode: "classic",
@@ -279,6 +281,9 @@ function swapStackLayers() {
 
 function applyStageMode() {
   const m = settings.mode;
+  if (appliedStageMode === m) return;
+  appliedStageMode = m;
+
   stage.className = "stage";
   stage.classList.add(`mode-${m}`);
 
@@ -321,8 +326,8 @@ async function tickStack() {
 }
 
 async function tickPanels() {
-  let assets = await fetchRandomAssets(3);
-  while (assets.length < 3 && assets.length > 0) {
+  let assets = await fetchRandomAssets(5);
+  while (assets.length < 5 && assets.length > 0) {
     assets.push(assets[assets.length - 1]);
   }
   const imgs = panelsMode.querySelectorAll(".panel-img");
@@ -333,14 +338,19 @@ async function tickPanels() {
   for (let i = 0; i < total; i++) {
     const a = assets[i];
     const el = imgs[i];
+    el.classList.add("panel-img--loading");
     el.onload = () => {
+      el.classList.remove("panel-img--loading");
       loaded += 1;
       if (loaded === total) {
         renderPhotoInfo(assets[0]);
         setStatus("");
       }
     };
-    el.onerror = () => setStatus("Could not load a panel image.");
+    el.onerror = () => {
+      el.classList.remove("panel-img--loading");
+      setStatus("Could not load a panel image.");
+    };
     el.src = `/api/screensaver/thumbnail/${encodeURIComponent(a.id)}`;
   }
 }
@@ -386,9 +396,13 @@ function closeSettings() {
   tick().catch((e) => setStatus(e?.message || String(e)));
 }
 
-document.addEventListener("fullscreenchange", () => {
+function updateFullscreenChrome() {
+  document.body.classList.toggle("is-fullscreen", !!document.fullscreenElement);
   if (document.fullscreenElement) closeSettings();
-});
+}
+
+document.addEventListener("fullscreenchange", updateFullscreenChrome);
+document.addEventListener("webkitfullscreenchange", updateFullscreenChrome);
 
 function requestFs() {
   const el = document.documentElement;
@@ -445,8 +459,10 @@ document.addEventListener("keydown", (ev) => {
 await loadServerDefaults();
 loadSettings();
 applyIntervalToCss();
+appliedStageMode = null;
 applyStageMode();
 populateSettingsForm();
+updateFullscreenChrome();
 
 await tick().catch((e) => setStatus(e?.message || String(e)));
 scheduleTick();

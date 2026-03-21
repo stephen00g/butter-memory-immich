@@ -7,8 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Immich Screensaver</title>
-    <link rel="stylesheet" href="/style.css?v=1.1.1" />
-    <link rel="manifest" href="/manifest.webmanifest?v=1.1.1" />
+    <link rel="stylesheet" href="/style.css?v=1.1.2" />
+    <link rel="manifest" href="/manifest.webmanifest?v=1.1.2" />
   </head>
   <body>
     <div id="stage" class="stage mode-classic" aria-hidden="true">
@@ -31,9 +31,22 @@
         </div>
       </div>
       <div id="panels-mode" class="panels-mode" hidden>
-        <div class="panel-strip panel-strip--1"><img class="panel-img" alt="" decoding="async" /></div>
-        <div class="panel-strip panel-strip--2"><img class="panel-img" alt="" decoding="async" /></div>
-        <div class="panel-strip panel-strip--3"><img class="panel-img" alt="" decoding="async" /></div>
+        <!-- tvOS-style: vertical strips, each with its own slow drift (parallax-like) -->
+        <div class="panel-col panel-col--1">
+          <div class="panel-col-scroll"><img class="panel-img" alt="" decoding="async" /></div>
+        </div>
+        <div class="panel-col panel-col--2">
+          <div class="panel-col-scroll"><img class="panel-img" alt="" decoding="async" /></div>
+        </div>
+        <div class="panel-col panel-col--3">
+          <div class="panel-col-scroll"><img class="panel-img" alt="" decoding="async" /></div>
+        </div>
+        <div class="panel-col panel-col--4">
+          <div class="panel-col-scroll"><img class="panel-img" alt="" decoding="async" /></div>
+        </div>
+        <div class="panel-col panel-col--5">
+          <div class="panel-col-scroll"><img class="panel-img" alt="" decoding="async" /></div>
+        </div>
       </div>
     </div>
 
@@ -81,6 +94,6 @@
       </div>
     </div>
 
-    <script src="/app.js?v=1.1.1" type="module"></script>
+    <script src="/app.js?v=1.1.2" type="module"></script>
   </body>
 </html>

@@ -291,67 +291,103 @@ body {
   pointer-events: none;
 }
 
-/* Sliding panels */
+/* Sliding panels — tvOS-style vertical columns, slow independent drift (parallax collage) */
 .panels-mode {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: repeat(3, 1fr);
-  gap: 4px;
-  padding: 4px;
-  background: #0a0a0a;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  padding: 0;
+  background: #000;
 }
 
-.panel-strip {
+.panel-col {
   position: relative;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
-  border-radius: 4px;
-  background: #111;
+  background: #060606;
 }
 
-.panel-strip--1 {
-  animation: panelSlide1 var(--slide-duration, 30s) linear infinite;
-}
-.panel-strip--2 {
-  animation: panelSlide2 calc(var(--slide-duration, 30s) * 1.1) linear infinite reverse;
-}
-.panel-strip--3 {
-  animation: panelSlide3 calc(var(--slide-duration, 30s) * 0.95) linear infinite;
-}
-
-.panel-strip .panel-img {
+.panel-col-scroll {
   position: absolute;
-  min-width: 100%;
-  min-height: 100%;
-  width: 120%;
+  left: -4%;
+  width: 108%;
+  height: 118%;
+  top: -9%;
+  will-change: transform;
+}
+
+.panel-col-scroll .panel-img {
+  width: 100%;
   height: 100%;
   object-fit: cover;
-  left: -10%;
-  top: 0;
+  display: block;
+  opacity: 1;
+  transition: opacity 0.85s ease-out;
 }
 
-@keyframes panelSlide1 {
-  from {
-    transform: translateX(-4%);
+.panel-col-scroll .panel-img.panel-img--loading {
+  opacity: 0;
+}
+
+/* Each column: different speed + direction → Apple-like layered motion */
+.panel-col--1 .panel-col-scroll {
+  animation: panelDriftA 52s ease-in-out infinite alternate;
+}
+.panel-col--2 .panel-col-scroll {
+  animation: panelDriftB 61s ease-in-out infinite alternate-reverse;
+}
+.panel-col--3 .panel-col-scroll {
+  animation: panelDriftC 47s ease-in-out infinite alternate;
+}
+.panel-col--4 .panel-col-scroll {
+  animation: panelDriftD 56s ease-in-out infinite alternate-reverse;
+}
+.panel-col--5 .panel-col-scroll {
+  animation: panelDriftE 44s ease-in-out infinite alternate;
+}
+
+/* Mostly vertical drift with slight horizontal — continuous, smooth loops */
+@keyframes panelDriftA {
+  0% {
+    transform: translate(0, 0) scale(1.02);
   }
-  to {
-    transform: translateX(4%);
+  100% {
+    transform: translate(-2%, -6%) scale(1.05);
   }
 }
-@keyframes panelSlide2 {
-  from {
-    transform: translateX(3%);
+@keyframes panelDriftB {
+  0% {
+    transform: translate(0, -4%) scale(1.04);
   }
-  to {
-    transform: translateX(-3%);
+  100% {
+    transform: translate(1.5%, 2%) scale(1.02);
   }
 }
-@keyframes panelSlide3 {
-  from {
-    transform: translateX(-2%);
+@keyframes panelDriftC {
+  0% {
+    transform: translate(-1%, 1%) scale(1.03);
   }
-  to {
-    transform: translateX(2%);
+  100% {
+    transform: translate(2%, -5%) scale(1.06);
+  }
+}
+@keyframes panelDriftD {
+  0% {
+    transform: translate(1%, 0) scale(1.05);
+  }
+  100% {
+    transform: translate(-2%, 4%) scale(1.03);
+  }
+}
+@keyframes panelDriftE {
+  0% {
+    transform: translate(0, 2%) scale(1.02);
+  }
+  100% {
+    transform: translate(0, -7%) scale(1.05);
   }
 }
 
@@ -397,6 +433,20 @@ body {
 .photo-info__text {
   display: inline;
   color: rgba(255, 255, 255, 0.52);
+}
+
+/* Hide chrome in real fullscreen (move mouse to bottom edge to show — still hidden while fullscreen) */
+body.is-fullscreen #hud {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  border: none !important;
 }
 
 /* HUD — bar always visible; only the strip captures hover (buttons stay clickable) */

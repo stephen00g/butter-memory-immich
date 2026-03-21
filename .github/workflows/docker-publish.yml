@@ -1,4 +1,4 @@
-# Pushes ghcr.io/.../immich-screensaver:1.1.1 (+ :latest) on every push to main.
+# Pushes ghcr.io/.../immich-screensaver:1.1.2 (+ :latest) on every push to main.
 # Fixes ImagePullBackOff when the image was never built locally.
 name: Publish container image
 
@@ -13,7 +13,7 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/immich-screensaver
-  IMAGE_TAG: "1.1.1"
+  IMAGE_TAG: "1.1.2"
 
 jobs:
   build-and-push:
