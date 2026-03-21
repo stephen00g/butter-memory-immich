@@ -1,13 +1,21 @@
 /**
  * Keep the screen awake during fullscreen / “fill screen” mode.
- * - Screen Wake Lock API (iOS Safari 16.4+, Chrome, etc.)
- * - Hidden looping video fallback (NoSleep.js–style; see keep-awake-media.js)
+ *
+ * iOS Safari: user activation does NOT survive Promise.then/catch/microtasks — so
+ * `video.play()` must run in the same synchronous turn as the tap. Wake Lock alone
+ * can resolve while the screen still dims; we always start a muted inline video too.
+ *
+ * Sources: NoSleep.js–style media (keep-awake-media.js), Screen Wake Lock API.
  */
 
-import { webm, mp4 } from "./keep-awake-media.js?v=1.1.6";
+import { webm } from "./keep-awake-media.js?v=1.1.7";
+
+/** Real H.264 file (see repo `public/keep-awake.mp4`) — iOS often fails on data-URI / tiny broken MP4s. */
+const KEEP_AWAKE_MP4 = "/keep-awake.mp4?v=1.1.7";
 
 let wakeLock = null;
 let noSleepVideo = null;
+let heartbeatTimer = null;
 
 function releaseWakeLockOnly() {
   if (!wakeLock) return;
@@ -15,38 +23,59 @@ function releaseWakeLockOnly() {
   wakeLock = null;
 }
 
+function stopHeartbeat() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+  heartbeatTimer = window.setInterval(() => {
+    if (!document.body.classList.contains("is-fullscreen")) return;
+    const v = noSleepVideo;
+    if (!v || !v.paused) return;
+    v.play().catch(() => {});
+  }, 4000);
+}
+
 function getOrCreateNoSleepVideo() {
   if (noSleepVideo) return noSleepVideo;
   const v = document.createElement("video");
   v.setAttribute("playsinline", "");
   v.setAttribute("webkit-playsinline", "");
-  v.muted = true;
   v.setAttribute("muted", "");
+  v.muted = true;
+  v.defaultMuted = true;
+  v.setAttribute("preload", "auto");
+  v.preload = "auto";
   v.setAttribute("aria-hidden", "true");
+  v.setAttribute("loop", "");
+  /** Safari picks the first source it can decode — MP4 must come first on iOS. */
+  const sMp4 = document.createElement("source");
+  sMp4.src = KEEP_AWAKE_MP4;
+  sMp4.type = "video/mp4";
   const sWebm = document.createElement("source");
   sWebm.src = webm;
   sWebm.type = "video/webm";
-  const sMp4 = document.createElement("source");
-  sMp4.src = mp4;
-  sMp4.type = "video/mp4";
-  v.appendChild(sWebm);
   v.appendChild(sMp4);
+  v.appendChild(sWebm);
   v.className = "keep-awake-video";
   Object.assign(v.style, {
     position: "fixed",
     left: "0",
     top: "0",
-    width: "1px",
-    height: "1px",
+    width: "2px",
+    height: "2px",
     opacity: "0.02",
     pointerEvents: "none",
-    zIndex: "-1",
+    zIndex: "1",
   });
   document.body.appendChild(v);
   v.addEventListener("loadedmetadata", () => {
-    if (v.duration <= 1) {
-      v.setAttribute("loop", "");
-    } else {
+    if (v.duration > 1) {
+      v.removeAttribute("loop");
       v.addEventListener("timeupdate", () => {
         if (v.currentTime > 0.5) v.currentTime = Math.random();
       });
@@ -56,49 +85,73 @@ function getOrCreateNoSleepVideo() {
   return v;
 }
 
-/** Run in the same user-gesture turn as entering fullscreen (required on iOS). */
-function tryPlayVideoFallback() {
+/**
+ * MUST run synchronously inside the same user gesture as the tap (touchend/click).
+ * iOS will reject play() if this runs in a Promise callback.
+ */
+function playNoSleepVideoNow() {
   const v = getOrCreateNoSleepVideo();
   const p = v.play();
-  if (p && typeof p.catch === "function") p.catch(() => {});
-}
-
-/**
- * Request wake lock and/or start hidden video. Call synchronously from a tap/click
- * that enters fullscreen so iOS accepts it.
- */
-export function acquireStayAwake() {
-  releaseWakeLockOnly();
-
-  if ("wakeLock" in navigator) {
-    navigator.wakeLock
-      .request("screen")
-      .then((wl) => {
-        wakeLock = wl;
-        wl.addEventListener("release", () => {
-          wakeLock = null;
-        });
-      })
-      .catch(() => {
-        tryPlayVideoFallback();
-      });
-  } else {
-    tryPlayVideoFallback();
+  if (p && typeof p.catch === "function") {
+    p.catch(() => {});
   }
 }
 
+function requestWakeLockAsync() {
+  if (!("wakeLock" in navigator)) return;
+  releaseWakeLockOnly();
+  navigator.wakeLock
+    .request("screen")
+    .then((wl) => {
+      wakeLock = wl;
+      wl.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    })
+    .catch(() => {});
+}
+
+/**
+ * Call from a direct tap/click handler (Fullscreen, or tap on stage in fullscreen).
+ * Order: hidden video play first (sync), then wake lock (async is OK for the lock object).
+ */
+export function acquireStayAwake() {
+  playNoSleepVideoNow();
+  requestWakeLockAsync();
+  startHeartbeat();
+}
+
 export function releaseStayAwake() {
+  stopHeartbeat();
   releaseWakeLockOnly();
   if (noSleepVideo) {
     noSleepVideo.pause();
   }
 }
 
-/** Re-acquire after tab focus or wake-lock release (browser may drop lock when hidden). */
+/** Create the video element early so metadata can load before the user hits Fullscreen. */
+export function preloadStayAwakeAssets() {
+  getOrCreateNoSleepVideo();
+}
+
 export function initStayAwake() {
+  preloadStayAwakeAssets();
+
+  /** Prime inline video on first touch/click so a later Fullscreen tap can play() reliably on iOS. */
+  let primed = false;
+  const primeOnce = () => {
+    if (primed) return;
+    primed = true;
+    playNoSleepVideoNow();
+    if (noSleepVideo) noSleepVideo.pause();
+  };
+  document.addEventListener("touchstart", primeOnce, { capture: true, passive: true, once: true });
+  document.addEventListener("click", primeOnce, { capture: true, once: true });
+
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
     if (!document.body.classList.contains("is-fullscreen")) return;
-    acquireStayAwake();
+    playNoSleepVideoNow();
+    requestWakeLockAsync();
   });
 }

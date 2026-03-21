@@ -1,4 +1,4 @@
-import { acquireStayAwake, initStayAwake, releaseStayAwake } from "./keep-awake.js?v=1.1.6";
+import { acquireStayAwake, initStayAwake, releaseStayAwake } from "./keep-awake.js?v=1.1.7";
 
 const STORAGE_KEY = "immich-screensaver-settings";
 
@@ -556,6 +556,7 @@ document.addEventListener(
     if (ev.target.closest("#settings-dialog") || ev.target.closest("#settings-backdrop")) return;
     if (ev.target.closest("#hud")) return;
     if (!stage.contains(ev.target)) return;
+    acquireStayAwake();
     openSettings();
   },
   true

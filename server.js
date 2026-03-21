@@ -69,6 +69,7 @@ const MIME = {
   ".ico": "image/x-icon",
   ".svg": "image/svg+xml",
   ".webmanifest": "application/manifest+json",
+  ".mp4": "video/mp4",
 };
 
 function serveStatic(req, res, filePath) {
@@ -86,7 +87,7 @@ function serveStatic(req, res, filePath) {
     }
     const ext = path.extname(full);
     const headers = { "Content-Type": MIME[ext] || "application/octet-stream" };
-    if ([".html", ".js", ".css", ".webmanifest"].includes(ext)) {
+    if ([".html", ".js", ".css", ".webmanifest", ".mp4"].includes(ext)) {
       headers["Cache-Control"] = "no-store";
     }
     res.writeHead(200, headers);
