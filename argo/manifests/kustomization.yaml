@@ -8,4 +8,5 @@ resources:
 images:
   - name: immich-screensaver
     newName: ghcr.io/stephen00g/immich-screensaver
-    newTag: "1.0.0"
+    # Bump this (and workflow IMAGE_TAG) whenever UI/static files change so nodes pull a new image.
+    newTag: "1.1.0"
