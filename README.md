@@ -54,13 +54,40 @@ Edit `argo/manifests/03-service.yaml` annotation `metallb.universe.tf/loadBalanc
 
 The cluster must be able to **reach** `IMMICH_SERVER_URL` from the pod network (same LAN is fine).
 
-## Container image
+## Container image (GHCR)
 
-Build and push, then align `argo/manifests/kustomization.yaml` `images` with your registry:
+**CI:** Pushes to `main` run [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) and publish `ghcr.io/stephen00g/immich-screensaver:1.0.0` (and `:latest`). Wait for the workflow to finish after you push, then refresh the Deployment.
+
+**ImagePullBackOff / `403 Forbidden` from `ghcr.io/token`:** The cluster is pulling **anonymously**. Either:
+
+1. **Make the package public** (simplest for a homelab): GitHub → your profile → **Packages** → **immich-screensaver** → **Package settings** → **Change package visibility** → Public. Anonymous nodes can pull.
+2. **Keep the package private** and add a pull secret + `imagePullSecrets` on the Deployment (see below).
+
+Manual build (optional):
 
 ```bash
 docker build -t ghcr.io/YOUR_ORG/immich-screensaver:1.0.0 .
+echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_USER --password-stdin
 docker push ghcr.io/YOUR_ORG/immich-screensaver:1.0.0
+```
+
+### Private GHCR + `imagePullSecrets`
+
+Create a [PAT](https://github.com/settings/tokens) with **`read:packages`** (and `write:packages` if you push from CI elsewhere), then:
+
+```bash
+kubectl create secret docker-registry ghcr-pull \
+  -n immich-screensaver \
+  --docker-server=ghcr.io \
+  --docker-username=stephen00g \
+  --docker-password='YOUR_PAT'
+```
+
+Patch the Deployment (or add under `spec.template.spec` in `02-deployment.yaml`):
+
+```yaml
+imagePullSecrets:
+  - name: ghcr-pull
 ```
 
 ## Argo CD
