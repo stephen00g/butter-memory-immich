@@ -109,7 +109,16 @@ kubectl rollout restart deployment/immich-screensaver -n immich-screensaver
 
 ### MetalLB static IP
 
-Edit `argo/manifests/03-service.yaml` annotation `metallb.universe.tf/loadBalancerIPs` to a free address in your pool (example in repo: `192.168.68.32` — change it). Same pattern as your Tdarr app.
+Your MetalLB **IPAddressPool** must include the address you request. In this lab, `home-lan-pool` is documented as **`192.168.68.20`–`30`** (see `butter-argo` docs / OpenClaw notes). **`192.168.68.32` is outside that range**, which causes `AllocationFailed: ... is not allowed in config`.
+
+The repo defaults to **`192.168.68.29`** (inside `28–30`; **`.28`** is Tdarr). Confirm nothing else uses `.29` on your cluster:
+
+```bash
+kubectl get svc -A | grep LoadBalancer
+kubectl get ipaddresspool -n metallb-system -o wide
+```
+
+If `.29` is taken, try **`.30`** or expand the pool (only if your LAN routing allows it). Edit `argo/manifests/03-service.yaml` → `metallb.universe.tf/loadBalancerIPs`.
 
 The cluster must be able to **reach** `IMMICH_SERVER_URL` from the pod network (same LAN is fine).
 

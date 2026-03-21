@@ -4,8 +4,9 @@ metadata:
   name: immich-screensaver
   namespace: immich-screensaver
   annotations:
-    # Pick a free IP from your MetalLB pool (see README).
-    metallb.universe.tf/loadBalancerIPs: "192.168.68.32"
+    # Must fall inside your MetalLB pool. This lab uses home-lan 192.168.68.20–30
+    # (.28=tdarr, .27=openclaw); .29 is free in-repo — confirm on your cluster before sync.
+    metallb.universe.tf/loadBalancerIPs: "192.168.68.29"
 spec:
   type: LoadBalancer
   selector:
