@@ -5,6 +5,15 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+let APP_VERSION = "0.0.0";
+try {
+  const pkgPath = path.join(__dirname, "package.json");
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+  if (typeof pkg.version === "string") APP_VERSION = pkg.version;
+} catch {
+  /* keep default */
+}
+
 const PORT = Number(process.env.PORT) || 8080;
 const IMMICH_URL = (process.env.IMMICH_SERVER_URL || "").replace(/\/$/, "");
 const API_KEY = process.env.IMMICH_API_KEY || "";
@@ -103,6 +112,7 @@ const server = http.createServer((req, res) => {
       JSON.stringify({
         slideIntervalMs: SLIDE_INTERVAL_MS,
         thumbSize: THUMB_SIZE,
+        appVersion: APP_VERSION,
       })
     );
     return;

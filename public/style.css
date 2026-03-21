@@ -538,6 +538,13 @@ body.is-fullscreen #hud {
   font-weight: 600;
 }
 
+.settings-dialog__version {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 .settings-dialog__hint {
   margin: 0 0 18px;
   font-size: 0.85rem;

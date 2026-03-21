@@ -19,7 +19,7 @@ spec:
         - name: ghcr-pull
       containers:
         - name: immich-screensaver
-          image: immich-screensaver:1.1.2
+          image: immich-screensaver:1.1.3
           imagePullPolicy: Always
           ports:
             - name: http

@@ -62,6 +62,7 @@ const settingInterval = document.getElementById("setting-interval");
 const settingIntervalValue = document.getElementById("setting-interval-value");
 const settingShowInfo = document.getElementById("setting-show-info");
 const modeDesc = document.getElementById("mode-desc");
+const settingsVersionEl = document.getElementById("settings-version");
 
 let activeLayer = layerA;
 let idleLayer = layerB;
@@ -236,6 +237,9 @@ async function loadServerDefaults() {
     if (!hasLocal && typeof cfg.slideIntervalMs === "number" && cfg.slideIntervalMs >= 5000) {
       settings.intervalSec = Math.round(cfg.slideIntervalMs / 1000);
     }
+    if (settingsVersionEl && typeof cfg.appVersion === "string") {
+      settingsVersionEl.textContent = `Version ${cfg.appVersion}`;
+    }
   } catch {
     /* ignore */
   }
@@ -377,8 +381,18 @@ function updateModeDesc() {
   modeDesc.textContent = m?.desc || "";
 }
 
-function openSettings() {
+async function openSettings() {
   populateSettingsForm();
+  try {
+    const r = await fetch("/api/config", { cache: "no-store" });
+    if (r.ok && settingsVersionEl) {
+      const cfg = await r.json();
+      settingsVersionEl.textContent =
+        typeof cfg.appVersion === "string" ? `Version ${cfg.appVersion}` : "";
+    }
+  } catch {
+    /* keep previous label */
+  }
   settingsBackdrop.hidden = false;
   settingsDialog.hidden = false;
   document.body.classList.add("settings-open");
