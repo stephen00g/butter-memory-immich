@@ -13,6 +13,10 @@ spec:
       labels:
         app: immich-screensaver
     spec:
+      # Create once: kubectl create secret docker-registry ghcr-pull -n immich-screensaver ...
+      # See README — GHCR often still denies anonymous pulls (401) even when the package is "public".
+      imagePullSecrets:
+        - name: ghcr-pull
       containers:
         - name: immich-screensaver
           image: immich-screensaver:1.0.0

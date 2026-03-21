@@ -9,27 +9,43 @@ Fullscreen web UI that shows random photos from your [Immich](https://immich.app
 | What | What checks it |
 |------|----------------|
 | **Git repository in Argo** | Argo CD clones your repo and applies YAML. If Argo shows **Synced**, this part is fine. |
-| **Container image on GHCR** | Each node runs `docker pull ghcr.io/...` **without** your Git credentials. That uses the **container registry** only. |
+| **Container image on GHCR** | Each node pulls `ghcr.io/...` using the **container registry**, not your Git/Argo SSH key. |
 
-A **private GitHub repo** usually produces a **private GHCR package**. Anonymous pulls then get **403**, so the pod stays in **ImagePullBackOff** even though Argo is green.
+**This repo expects a Kubernetes pull secret named `ghcr-pull`** so nodes can authenticate to GHCR. That avoids **`401 Unauthorized` / `403 Forbidden`** on `https://ghcr.io/token?...`, which happen when GitHub **does not issue an anonymous pull token** for your package (common even after setting visibility to “Public”).
 
-**Fix (pick one):**
+### 1 — Create a GitHub token for pulls
 
-### A — Make the GHCR package public (simplest for a homelab)
+1. Open **[Fine-grained token](https://github.com/settings/personal-access-tokens/new)** (or [classic](https://github.com/settings/tokens/new)) and create a token that can **read** GitHub Packages for `ghcr.io`.
+   - **Classic PAT:** enable scope **`read:packages`** (and nothing else required for pull).
+   - **Fine-grained:** Resource owner **your user**, repository access include **`butter-memory-immich`**, Permissions → **Packages** → **Read**.
 
-Your **code repo** can stay private; only the **package** visibility changes.
+### 2 — Create the `docker-registry` secret (once per cluster)
 
-1. Open **[Your packages on GitHub](https://github.com/stephen00g?tab=packages)** (or **Profile → Packages**).
-2. Open the package **`immich-screensaver`** (published by this repo’s Actions).
-3. **Package settings** (right sidebar) → **Change package visibility** → **Public** → confirm.
-4. Restart the workload so Kubernetes retries the pull:
-   ```bash
-   kubectl rollout restart deployment/immich-screensaver -n immich-screensaver
-   ```
+Use your GitHub **username** and the token as the **password**:
 
-### B — Keep the package private
+```bash
+kubectl create secret docker-registry ghcr-pull \
+  -n immich-screensaver \
+  --docker-server=ghcr.io \
+  --docker-username=stephen00g \
+  --docker-password='YOUR_PAT_HERE'
+```
 
-Create a GitHub [Personal Access Token](https://github.com/settings/tokens) with **`read:packages`**, then create a pull secret and attach it to the pod. See [Container image (GHCR)](#container-image-ghcr) → **Private GHCR + `imagePullSecrets`** below.
+If the secret already exists, delete and recreate or use `kubectl create secret ... --dry-run=client -o yaml | kubectl apply -f -` with your preferred workflow.
+
+### 3 — Restart the Deployment
+
+```bash
+kubectl rollout restart deployment/immich-screensaver -n immich-screensaver
+```
+
+### Verify anonymous access (optional)
+
+If this returns JSON with `"errors"` instead of a `"token"`, anonymous pulls will fail — use the secret above.
+
+```bash
+curl -sS "https://ghcr.io/token?service=ghcr.io&scope=repository:stephen00g/immich-screensaver:pull"
+```
 
 ---
 
@@ -56,11 +72,23 @@ Do **not** grant write/admin scopes; this app only reads.
 
 The process reads only `process.env` (see `server.js`). IPs and keys belong in Kubernetes env, not in the repo.
 
-### Create the secret (required before Argo can sync the Deployment)
+### Create secrets (required before the Deployment can run)
+
+**1 — GHCR pull** (image — see [Argo / ImagePullBackOff](#argo-is-synced-but-the-pod-is-imagepullbackoff--what-to-do) above):
 
 ```bash
 kubectl create namespace immich-screensaver --dry-run=client -o yaml | kubectl apply -f -
 
+kubectl create secret docker-registry ghcr-pull \
+  -n immich-screensaver \
+  --docker-server=ghcr.io \
+  --docker-username=stephen00g \
+  --docker-password='PAT_WITH_read:packages'
+```
+
+**2 — Immich API key** (app config):
+
+```bash
 kubectl create secret generic immich-screensaver-secrets \
   -n immich-screensaver \
   --from-literal=IMMICH_API_KEY='YOUR_KEY_HERE'
@@ -89,10 +117,7 @@ The cluster must be able to **reach** `IMMICH_SERVER_URL` from the pod network (
 
 **CI:** Pushes to `main` run [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) and publish `ghcr.io/stephen00g/immich-screensaver:1.0.0` (and `:latest`). Wait for the workflow to finish after you push, then refresh the Deployment.
 
-**ImagePullBackOff / `403 Forbidden` from `ghcr.io/token`:** The cluster is pulling **anonymously**. Either:
-
-1. **Make the package public** (simplest for a homelab): GitHub → your profile → **Packages** → **immich-screensaver** → **Package settings** → **Change package visibility** → Public. Anonymous nodes can pull.
-2. **Keep the package private** and add a pull secret + `imagePullSecrets` on the Deployment (see below).
+**ImagePullBackOff / `401` / `403` on `ghcr.io/token`:** Use the **`ghcr-pull`** docker-registry secret and `imagePullSecrets` on the Deployment (already in `argo/manifests/02-deployment.yaml`). Anonymous GHCR pulls are unreliable for many user-owned packages even when marked public.
 
 Manual build (optional):
 
@@ -100,25 +125,6 @@ Manual build (optional):
 docker build -t ghcr.io/YOUR_ORG/immich-screensaver:1.0.0 .
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_USER --password-stdin
 docker push ghcr.io/YOUR_ORG/immich-screensaver:1.0.0
-```
-
-### Private GHCR + `imagePullSecrets`
-
-Create a [PAT](https://github.com/settings/tokens) with **`read:packages`** (and `write:packages` if you push from CI elsewhere), then:
-
-```bash
-kubectl create secret docker-registry ghcr-pull \
-  -n immich-screensaver \
-  --docker-server=ghcr.io \
-  --docker-username=stephen00g \
-  --docker-password='YOUR_PAT'
-```
-
-Patch the Deployment (or add under `spec.template.spec` in `02-deployment.yaml`):
-
-```yaml
-imagePullSecrets:
-  - name: ghcr-pull
 ```
 
 ## Argo CD
