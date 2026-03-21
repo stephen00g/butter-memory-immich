@@ -91,11 +91,13 @@ Do **not** grant write/admin scopes; this app only reads.
 | Source | Variables |
 |--------|-----------|
 | **ConfigMap** `immich-screensaver-config` | `IMMICH_SERVER_URL` (base URL, no trailing slash, e.g. `http://192.168.68.151:2283`), `SLIDE_INTERVAL_MS`, `IMMICH_THUMB_SIZE` (`preview` is a good default). |
-| **Secret** `immich-screensaver-secrets` | `IMMICH_API_KEY` |
+| **Secret** `immich-screensaver-secrets` | `IMMICH_API_KEY` (optional for **pod** start; required for Immich API to work) |
 
 The process reads only `process.env` (see `server.js`). IPs and keys belong in Kubernetes env, not in the repo.
 
-### Create secrets (required before the Deployment can run)
+**Why updates felt painful:** Argo CD continuously reapplies **Git**. If the Deployment required a Secret that did not exist, Kubernetes refused to start the container (`CreateContainerConfigError`) — image updates could not roll out. The Deployment now uses an **optional** `IMMICH_API_KEY` reference so the pod **always starts**; add the secret when you are ready. The UI returns `503` until both URL and key are set.
+
+### Create secrets
 
 **1 — GHCR pull** (image — see [Argo / ImagePullBackOff](#argo-is-synced-but-the-pod-is-imagepullbackoff--what-to-do) above):
 
@@ -109,7 +111,7 @@ kubectl create secret docker-registry ghcr-pull \
   --docker-password='PAT_WITH_read:packages'
 ```
 
-**2 — Immich API key** (app config):
+**2 — Immich API key** (app actually works; skip only if you want a broken UI until later):
 
 ```bash
 kubectl create secret generic immich-screensaver-secrets \
