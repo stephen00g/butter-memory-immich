@@ -151,18 +151,18 @@ The cluster must be able to **reach** `IMMICH_SERVER_URL` from the pod network (
 
 ## Container image (GHCR)
 
-**CI:** Pushes to `main` run [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) and publish `ghcr.io/stephen00g/immich-screensaver:1.1.0` (and `:latest`). Wait for the workflow to finish after you push, then sync Argo (or `kubectl apply -k argo/manifests`).
+**CI:** Pushes to `main` run [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) and publish `ghcr.io/stephen00g/immich-screensaver:1.1.1` (and `:latest`). Wait for the workflow to finish after you push, then sync Argo (or `kubectl apply -k argo/manifests`).
 
-**Why you didn’t see UI changes after a Git push:** The app’s HTML/JS/CSS are **inside the Docker image**. Kubernetes defaults to **`imagePullPolicy: IfNotPresent`**. If the tag stayed **`1.0.0`**, nodes kept using the **cached old image** and never picked up new static files. This repo uses **`1.1.0`** and **`imagePullPolicy: Always`** so rollouts pull fresh layers. When you change the UI again, **bump the tag** in `argo/manifests/kustomization.yaml` and `.github/workflows/docker-publish.yml` (same version in both), push `main`, let CI build, then sync.
+**Why you didn’t see UI changes after a Git push:** The app’s HTML/JS/CSS are **inside the Docker image**. Kubernetes defaults to **`imagePullPolicy: IfNotPresent`**. If the tag stayed **`1.0.0`**, nodes kept using the **cached old image** and never picked up new static files. This repo uses **`1.1.1`** (bump when UI changes) and **`imagePullPolicy: Always`** so rollouts pull fresh layers. When you change the UI again, **bump the tag** in `argo/manifests/kustomization.yaml` and `.github/workflows/docker-publish.yml` (same version in both), push `main`, let CI build, then sync.
 
 **ImagePullBackOff / `401` / `403` on `ghcr.io/token`:** Use the **`ghcr-pull`** docker-registry secret and `imagePullSecrets` on the Deployment (already in `argo/manifests/02-deployment.yaml`). Anonymous GHCR pulls are unreliable for many user-owned packages even when marked public.
 
 Manual build (optional):
 
 ```bash
-docker build -t ghcr.io/YOUR_ORG/immich-screensaver:1.1.0 .
+docker build -t ghcr.io/YOUR_ORG/immich-screensaver:1.1.1 .
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_USER --password-stdin
-docker push ghcr.io/YOUR_ORG/immich-screensaver:1.1.0
+docker push ghcr.io/YOUR_ORG/immich-screensaver:1.1.1
 ```
 
 ## Argo CD

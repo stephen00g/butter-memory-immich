@@ -206,9 +206,9 @@ function renderPhotoInfo(asset) {
   photoInfoEl.innerHTML = lines
     .map(
       (l) =>
-        `<div class="photo-info__line"><div class="photo-info__label">${escapeHtml(
+        `<div class="photo-info__line"><span class="photo-info__label">${escapeHtml(
           l.label
-        )}</div><div>${escapeHtml(l.text)}</div></div>`
+        )}</span><span class="photo-info__text">${escapeHtml(l.text)}</span></div>`
     )
     .join("");
 }
@@ -385,6 +385,10 @@ function closeSettings() {
   scheduleTick();
   tick().catch((e) => setStatus(e?.message || String(e)));
 }
+
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) closeSettings();
+});
 
 function requestFs() {
   const el = document.documentElement;

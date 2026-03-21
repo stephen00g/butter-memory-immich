@@ -4,6 +4,16 @@
   box-sizing: border-box;
 }
 
+/* Class-based display must not beat the [hidden] attribute (otherwise panels/settings stay visible). */
+.panels-mode[hidden],
+.stack-mode[hidden],
+.settings-backdrop[hidden],
+.settings-dialog[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
 html,
 body {
   margin: 0;
@@ -345,26 +355,30 @@ body {
   }
 }
 
-/* Photo info overlay */
+/* Photo info — subtle text only (no panel/box) */
 .photo-info {
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
   bottom: max(72px, env(safe-area-inset-bottom));
-  max-width: min(420px, 92vw);
-  padding: 14px 18px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-size: 0.9rem;
-  line-height: 1.45;
-  color: #eee;
+  max-width: min(380px, 88vw);
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.42);
+  text-shadow:
+    0 0 12px rgba(0, 0, 0, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 2px 24px rgba(0, 0, 0, 0.75);
   z-index: 40;
   pointer-events: none;
 }
 
 .photo-info__line {
-  margin: 0 0 0.35em;
+  margin: 0 0 0.4em;
 }
 
 .photo-info__line:last-child {
@@ -372,11 +386,17 @@ body {
 }
 
 .photo-info__label {
-  font-size: 0.72rem;
+  display: inline;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 0.15em;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.38);
+  margin-right: 0.35em;
+}
+
+.photo-info__text {
+  display: inline;
+  color: rgba(255, 255, 255, 0.52);
 }
 
 /* HUD — bar always visible; only the strip captures hover (buttons stay clickable) */
