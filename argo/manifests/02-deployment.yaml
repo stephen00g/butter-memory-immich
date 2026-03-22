@@ -5,6 +5,8 @@ metadata:
   namespace: immich-screensaver
 spec:
   replicas: 1
+  # Old ReplicaSets kept for `kubectl rollout undo` (default is 10).
+  revisionHistoryLimit: 2
   selector:
     matchLabels:
       app: immich-screensaver
