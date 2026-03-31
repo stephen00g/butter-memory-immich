@@ -130,8 +130,9 @@ kubectl create secret generic immich-screensaver-secrets \
 If you did not use the Git default, or Immich listens on another port:
 
 ```bash
-kubectl patch configmap immich-screensaver-config -n immich-screensaver --type merge -p \
-  '{"data":{"IMMICH_SERVER_URL":"http://192.168.68.151:2283","SLIDE_INTERVAL_MS":"45000"}}'
+# One line avoids broken line-continuation when copying; include IMMICH_THUMB_SIZE so a merge
+# does not drop keys that exist in argo/manifests/01-configmap.yaml.
+kubectl patch configmap immich-screensaver-config -n immich-screensaver --type merge -p '{"data":{"IMMICH_SERVER_URL":"http://192.168.68.151:2283","SLIDE_INTERVAL_MS":"45000","IMMICH_THUMB_SIZE":"preview"}}'
 ```
 
 Restart if needed:
