@@ -1,5 +1,7 @@
 # Immich screensaver
 
+> **Suspended (May 2026):** The Immich host `192.168.68.151` (`immich-app`) was decommissioned. Deployment is at **replicas: 0** and the Argo app has **automated sync disabled** until you set a new `IMMICH_SERVER_URL`. See [butter-argo/docs/workload-balance.md](https://github.com/stephen00g/butter-argo/blob/main/docs/workload-balance.md#immich-screensaver-suspended).
+
 Fullscreen web UI that shows random photos from your [Immich](https://immich.app/) library. A small Node server proxies the Immich API so the **API key stays on the server** (never shipped to the browser).
 
 ### `503` on `http://<screensaver-ip>/api/screensaver/...`

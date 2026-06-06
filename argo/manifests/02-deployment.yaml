@@ -4,7 +4,8 @@ metadata:
   name: immich-screensaver
   namespace: immich-screensaver
 spec:
-  replicas: 1
+  # Suspended until IMMICH_SERVER_URL points at a live Immich server (immich-app decommissioned).
+  replicas: 0
   # Old ReplicaSets kept for `kubectl rollout undo` (default is 10).
   revisionHistoryLimit: 2
   selector:

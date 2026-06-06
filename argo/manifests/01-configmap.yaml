@@ -5,7 +5,7 @@ metadata:
   namespace: immich-screensaver
 data:
   # Immich base URL (no trailing slash). Default port is 2283; change if yours differs.
-  # NOTE: immich-app (192.168.68.151) was decommissioned — set IMMICH_SERVER_URL to your new Immich host before sync.
-  IMMICH_SERVER_URL: "http://192.168.68.151:2283"
+  # NOTE: immich-app (192.168.68.151) was decommissioned. Set a live URL and scale deployment to 1 before sync.
+  IMMICH_SERVER_URL: ""
   SLIDE_INTERVAL_MS: "30000"
   IMMICH_THUMB_SIZE: "preview"
