@@ -8,7 +8,7 @@ That means the pod is running but **Immich env is incomplete**. Set both:
 
 | What | Where |
 |------|--------|
-| **Immich server URL** | **ConfigMap** `immich-screensaver-config` → `IMMICH_SERVER_URL` (e.g. `http://192.168.68.151:2283` — use your Immich **HTTP(S) port**, usually **2283**) |
+| **Immich server URL** | **ConfigMap** `immich-screensaver-config` → `IMMICH_SERVER_URL` (e.g. `http://<immich-host>:2283` — use your Immich **HTTP(S) port**, usually **2283**). The former host **192.168.68.151** (`immich-app`) was decommissioned; point this at your new Immich server. |
 | **Immich API key** | **Secret** `immich-screensaver-secrets` → `IMMICH_API_KEY` |
 
 After changing them, restart: `kubectl rollout restart deployment/immich-screensaver -n immich-screensaver`.
